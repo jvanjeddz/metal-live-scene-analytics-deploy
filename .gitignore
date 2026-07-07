@@ -1,0 +1,26 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Data
+data/
+*.duckdb
+*.duckdb.wal
+
+# ...but the dashboard's marts snapshot MUST be committed so it reaches
+# Streamlit Community Cloud (these negations must come after the rules above).
+!streamlit_app/data/
+!streamlit_app/data/analytics.duckdb
+
+# Secrets
+.env
+
+# OS
+.DS_Store

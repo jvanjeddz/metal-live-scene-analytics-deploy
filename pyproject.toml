@@ -1,0 +1,12 @@
+[project]
+name = "metal-live-scene-analytics"
+version = "0.1.0"
+description = "Metal Live Scene Analytics — Streamlit dashboard over a local DuckDB dataset"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "duckdb>=1.5.4",
+    "pandas>=2.0",
+    "plotly>=6.0",
+    "streamlit>=1.40",
+]

@@ -1,0 +1,15 @@
+# NOTE: `data` matches only the root extraction-output dir, NOT
+# streamlit_app/data/analytics.duckdb — the committed dataset still ships.
+
+.git
+.gitignore
+.venv
+**/__pycache__
+*.py[oc]
+
+# Secrets and raw extraction artifacts never belong in the image.
+.env
+data
+
+# Local/editor cruft
+README.md

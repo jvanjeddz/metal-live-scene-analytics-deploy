@@ -1,0 +1,22 @@
+services:
+  dashboard:
+    build: .
+    ports:
+      - "8501:8501"
+    command: uv run streamlit run streamlit_app/app.py --server.address 0.0.0.0
+
+  # One-off data rebuild: extraction (Kaggle -> Setlist.fm) into ./data/raw/*.csv,
+  # then the transform that writes streamlit_app/data/analytics.duckdb.
+  # Behind a profile, so `docker compose up` only runs the dashboard.
+  # Run it with:  docker compose run --rm ingest   (or `make docker-ingest`)
+  ingest:
+    build: .
+    profiles: ["ingest"]
+    volumes:
+      - ./data:/app/data         # persist extracted CSVs back to the host
+      - ./streamlit_app/data:/app/streamlit_app/data  # persist the built DuckDB file
+      - ./.env:/app/.env:ro      # credentials; the scripts parse this themselves
+    command: >
+      sh -c "uv run ingestion/ingest_kaggle.py &&
+             uv run ingestion/ingest_setlistfm.py &&
+             uv run ingestion/build_marts.py"

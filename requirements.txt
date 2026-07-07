@@ -1,0 +1,6 @@
+# Streamlit Community Cloud installs from this file.
+# Keep in sync with pyproject.toml's [project.dependencies].
+streamlit>=1.40
+plotly>=6.0
+pandas>=2.0
+duckdb>=1.5.4
