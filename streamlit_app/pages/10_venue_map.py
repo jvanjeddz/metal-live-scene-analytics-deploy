@@ -111,6 +111,54 @@ col2.metric("Concerts", f"{int(df['concerts'].sum()):,}")
 col3.metric("Cities", f"{df.groupby(['city_name', 'country_name']).ngroups:,}")
 col4.metric("Countries", f"{df['country_name'].nunique():,}")
 
+# ── Venue searcher: pick a country, then one of its venues ─────────────────
+# Options come from df, so only venues matching the current filters appear.
+st.markdown("**Find a venue**")
+col_sc, col_sv = st.columns([1, 2])
+with col_sc:
+    search_country = st.selectbox(
+        "Country",
+        sorted(df["country_name"].unique()),
+        index=None,
+        placeholder="Pick a country…",
+        key="venue_search_country",
+    )
+with col_sv:
+    if search_country is None:
+        venue_idx = None
+        st.selectbox(
+            "Venue", [], index=None,
+            placeholder="Pick a country first",
+            disabled=True, key="venue_search_venue_disabled",
+        )
+    else:
+        df_country = df[df["country_name"] == search_country].copy()
+        # Unique within a country: df is grouped by venue + city + country
+        df_country["venue_label"] = (
+            df_country["venue_name"] + " — " + df_country["city_name"]
+        )
+        df_country = df_country.sort_values("venue_label")
+        venue_label = st.selectbox(
+            "Venue",
+            df_country["venue_label"],
+            index=None,
+            placeholder="Type to search…",
+            key="venue_search_venue",
+        )
+        if venue_label is not None:
+            venue_idx = df_country.index[
+                df_country["venue_label"] == venue_label
+            ][0]
+        else:
+            venue_idx = None
+
+if venue_idx is not None:
+    sel = df.loc[venue_idx]
+    col_v1, col_v2, col_v3 = st.columns(3)
+    col_v1.metric("City", sel["city_name"])
+    col_v2.metric("Concerts", f"{int(sel['concerts']):,}")
+    col_v3.metric("Bands", f"{int(sel['bands']):,}")
+
 # ── Tile: world map of venues ───────────────────────────────────────────────
 # Dim-to-bright red ramp so high counts glow against the dark land
 VENUE_SCALE = [(0.0, "#6b1717"), (0.5, "#c43a2e"), (1.0, "#ffa07a")]
@@ -159,11 +207,28 @@ fig_map.update_geos(
     showlakes=False,
     bgcolor="rgba(0,0,0,0)",
 )
+if venue_idx is not None:
+    # Gold open ring so the searched venue stands out from the red ramp
+    fig_map.add_scattergeo(
+        lat=[sel["latitude"]],
+        lon=[sel["longitude"]],
+        mode="markers",
+        marker=dict(size=24, symbol="circle-open", color="#ffd700",
+                    line=dict(width=3)),
+        hoverinfo="skip",
+        showlegend=False,
+    )
+    fig_map.update_geos(
+        center=dict(lat=sel["latitude"], lon=sel["longitude"]),
+        projection_scale=8,
+    )
 fig_map.update_layout(height=550)
 st.plotly_chart(fig_map, width='stretch')
 st.caption(
     "Dot size and color both encode concert count. Drag to pan, scroll to "
     "zoom, hover for the venue's city and distinct-band count."
+    + (" The gold ring marks the searched venue." if venue_idx is not None
+       else "")
 )
 
 # ── Tile: hardest-working venues ────────────────────────────────────────────
